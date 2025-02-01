@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Browser Photo Booth</title>
+  <style>
+    body {
+      background: #222;
+      color: #fff;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    #video-container {
+      position: relative;
+      display: inline-block;
+      border: 5px solid #0af;
+    }
+    #video {
+      width: 640px;
+      height: 480px;
+      background: #000;
+    }
+    #countdown {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 5rem;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 20px 40px;
+      border-radius: 10px;
+      display: none;
+    }
+    .button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      background: #0af;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .output {
+      margin-top: 20px;
+    }
+    .output img {
+      max-width: 100%;
+      border: 5px solid #0af;
+    }
+  </style>
+</head>
+<body>
+  <h1>Browser Photo Booth</h1>
+  <div id="video-container">
+    <video id="video" autoplay playsinline></video>
+    <div id="countdown">3</div>
+  </div>
+  <br />
+  <button id="capture" class="button">Take Photo</button>
+  
+  <!-- Hidden canvas used for capturing the image -->
+  <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+  
+  <!-- Container for displaying the captured image -->
+  <div class="output" id="output"></div>
+  
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('capture');
+    const countdownEl = document.getElementById('countdown');
+    const output = document.getElementById('output');
+    const context = canvas.getContext('2d');
+
+    // Initialize the camera stream
+    async function initCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+      } catch (err) {
+        console.error('Error accessing camera:', err);
+        alert('Could not access the camera. Please check permissions.');
+      }
+    }
+    initCamera();
+
+    // Function to start a countdown before taking the photo
+    function startCountdown(seconds, callback) {
+      let counter = seconds;
+      countdownEl.textContent = counter;
+      countdownEl.style.display = 'block';
+      
+      const interval = setInterval(() => {
+        counter--;
+        if (counter > 0) {
+          countdownEl.textContent = counter;
+        } else {
+          clearInterval(interval);
+          countdownEl.style.display = 'none';
+          callback();
+        }
+      }, 1000);
+    }
+
+    // Capture the photo from the video stream
+    function capturePhoto() {
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataURL = canvas.toDataURL('image/png');
+      
+      // Display the captured image
+      const img = document.createElement('img');
+      img.src = dataURL;
+      
+      // Create a download link for the photo
+      const downloadLink = document.createElement('a');
+      downloadLink.href = dataURL;
+      downloadLink.download = 'photo.png';
+      downloadLink.textContent = 'Download Photo';
+      downloadLink.style.display = 'block';
+      downloadLink.style.marginTop = '10px';
+      
+      // Clear any previous output and add the new photo and download link
+      output.innerHTML = '';
+      output.appendChild(img);
+      output.appendChild(downloadLink);
+    }
+
+    // Set up the button to start the countdown and capture the photo
+    captureBtn.addEventListener('click', () => {
+      startCountdown(3, capturePhoto);
+    });
+  </script>
+</body>
+</html>
