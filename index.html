@@ -192,11 +192,10 @@
       }, 1000);
     }
 
-    // Capture the photo from the video stream with the computed filter
+    // Capture the photo from the video stream
     function capturePhoto() {
-      // Get the computed filter from the video element
-      const computedFilter = window.getComputedStyle(video).getPropertyValue('filter');
-      context.filter = computedFilter;
+      // Apply the selected filter on the canvas context so the snapshot matches the video look
+      context.filter = filterSelect.value;
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
       const dataURL = canvas.toDataURL('image/png');
       addPhotoToGallery(dataURL);
