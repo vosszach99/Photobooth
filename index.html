@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lumabooth-like Photo Booth</title>
   <style>
-    /* Global Styles */
     body {
       background: #111;
       color: #fff;
@@ -17,7 +16,6 @@
     h1 {
       margin-bottom: 20px;
     }
-    /* Video Container */
     #video-container {
       position: relative;
       display: inline-block;
@@ -31,7 +29,6 @@
       height: 480px;
       background: #000;
     }
-    /* Animated Countdown */
     #countdown {
       position: absolute;
       top: 50%;
@@ -52,7 +49,6 @@
       50% { transform: translate(-50%, -50%) scale(1.1); }
       100% { transform: translate(-50%, -50%) scale(1); }
     }
-    /* Buttons & Filter Options */
     .button {
       margin-top: 20px;
       padding: 15px 30px;
@@ -75,7 +71,6 @@
       border-radius: 5px;
       border: none;
     }
-    /* Gallery Styles */
     .gallery {
       margin-top: 30px;
       display: flex;
@@ -93,6 +88,7 @@
     .gallery-item img {
       display: block;
       max-width: 300px;
+      height: auto;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: scale(0.95); }
@@ -117,8 +113,7 @@
 </head>
 <body>
   <h1>Lumabooth Photo Booth</h1>
-  
-  <!-- Filter selection -->
+
   <div class="filter-options">
     <label for="filterSelect">Choose Filter: </label>
     <select id="filterSelect">
@@ -132,22 +127,17 @@
     </select>
   </div>
 
-  <!-- Video display -->
   <div id="video-container">
     <video id="video" autoplay playsinline></video>
     <div id="countdown">3</div>
   </div>
   <br />
-  
-  <!-- Capture button -->
   <button id="capture" class="button">Take Photo</button>
-  
-  <!-- Hidden canvas for capturing the photo -->
-  <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
-  
-  <!-- Gallery for multiple shots -->
+
+  <canvas id="canvas" style="display:none;"></canvas>
+
   <div class="gallery" id="gallery"></div>
-  
+
   <script>
     const video         = document.getElementById('video');
     const canvas        = document.getElementById('canvas');
@@ -162,6 +152,11 @@
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
+
+        video.addEventListener('loadedmetadata', () => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+        });
       } catch (err) {
         console.error('Error accessing camera:', err);
         alert('Could not access the camera. Please check permissions.');
@@ -169,12 +164,10 @@
     }
     initCamera();
 
-    // Update the live video with the chosen filter
     filterSelect.addEventListener('change', () => {
       video.style.filter = filterSelect.value;
     });
 
-    // Countdown before capturing a photo
     function startCountdown(seconds, callback) {
       let counter = seconds;
       countdownEl.textContent = counter;
@@ -192,16 +185,17 @@
       }, 1000);
     }
 
-    // Capture the photo from the video stream
     function capturePhoto() {
-      // Apply the selected filter on the canvas context so the snapshot matches the video look
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
       context.filter = filterSelect.value;
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
       const dataURL = canvas.toDataURL('image/png');
       addPhotoToGallery(dataURL);
     }
 
-    // Append the captured photo to the gallery with an animated appearance
     function addPhotoToGallery(dataURL) {
       const div = document.createElement('div');
       div.classList.add('gallery-item');
@@ -210,7 +204,6 @@
       img.src = dataURL;
       div.appendChild(img);
 
-      // Add a download link overlay on the photo
       const downloadLink = document.createElement('a');
       downloadLink.href = dataURL;
       downloadLink.download = 'photo.png';
@@ -221,7 +214,6 @@
       gallery.appendChild(div);
     }
 
-    // Set up the capture button to start the countdown and then capture the photo
     captureBtn.addEventListener('click', () => {
       startCountdown(3, capturePhoto);
     });
