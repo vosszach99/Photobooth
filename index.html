@@ -147,7 +147,6 @@
     const filterSelect  = document.getElementById('filterSelect');
     const context       = canvas.getContext('2d');
 
-    // Initialize the camera stream
     async function initCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -189,9 +188,10 @@
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      context.filter = filterSelect.value;
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      // Apply the exact same CSS filter to the canvas context
+      context.filter = getComputedStyle(video).filter;
 
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
       const dataURL = canvas.toDataURL('image/png');
       addPhotoToGallery(dataURL);
     }
